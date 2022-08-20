@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 # endif()
 
 
-project(template_lib LANGUAGES CXX HIP)
+project(hip_ds LANGUAGES CXX HIP)
 
 # Find hip
 find_package(hip REQUIRED)
@@ -20,7 +20,7 @@ set(CMAKE_HIP_STANDARD_REQUIRED TRUE)
 # Direct all output to /bin directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-add_library(template_lib INTERFACE)
+add_library(hip_ds INTERFACE)
 
 # options
 option(build_benchmarks "Build benchmarks" OFF)
@@ -28,13 +28,13 @@ option(build_tests "Build tests" ON)
 
 
 set(external_includes "${CMAKE_CURRENT_SOURCE_DIR}/external")
-set(template_lib_includes "${CMAKE_CURRENT_SOURCE_DIR}/include")
+set(hip_ds_includes "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 
-target_include_directories(template_lib
+target_include_directories(hip_ds
                             INTERFACE ${external_includes})
 
-target_link_libraries(template_lib INTERFACE hip::device INTERFACE hip::host)
+target_link_libraries(hip_ds INTERFACE hip::device INTERFACE hip::host)
 
 add_subdirectory(include)
 

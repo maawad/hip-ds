@@ -2,6 +2,8 @@
 #include <cassert>
 #include "hip/hip_runtime.h"
 
+#define DEVICE_QUALIFIER __device__
+
 #define hip_try(call)                                                                 \
   do {                                                                                \
     hipError_t err = call;                                                            \
