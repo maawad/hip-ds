@@ -1,0 +1,47 @@
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+# if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.8)
+#   cmake_policy(SET CMP0104 OLD)
+# endif()
+
+
+project(template_lib LANGUAGES CXX HIP)
+
+# Find hip
+find_package(hip REQUIRED)
+
+# C++ and HIP standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_HIP_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+set(CMAKE_HIP_STANDARD_REQUIRED TRUE)
+
+
+
+# Direct all output to /bin directory
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
+
+add_library(template_lib INTERFACE)
+
+# options
+option(build_benchmarks "Build benchmarks" OFF)
+option(build_tests "Build tests" ON)
+
+
+set(external_includes "${CMAKE_CURRENT_SOURCE_DIR}/external")
+set(template_lib_includes "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+
+target_include_directories(template_lib
+                            INTERFACE ${external_includes})
+
+target_link_libraries(template_lib INTERFACE hip::device INTERFACE hip::host)
+
+add_subdirectory(include)
+
+if(build_tests)
+   add_subdirectory(tests)
+endif(build_tests)
+
+if(build_benchmarks)
+   add_subdirectory(benchmarks)
+endif(build_benchmarks)
