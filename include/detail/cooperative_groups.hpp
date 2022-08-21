@@ -27,9 +27,17 @@ struct tiled_partition {
   __device__ static uint64_t ballot(int predicate) { return __ballot(predicate); }
   template <typename T>
   __device__ static auto shfl(T var, int src_lane) {
-    // static_cast(sizeof(T) <= 8);
-    return __shfl(var, src_lane, width);
+    static_assert(sizeof(T) <= 8);
+    if constexpr (sizeof(T) > 4) {
+      T result;
+      result.first  = __shfl(var.first, src_lane, width);
+      result.second = __shfl(var.second, src_lane, width);
+      return result;
+    } else {
+      return __shfl(var, src_lane, width);
+    }
   }
+  __device__ static auto all(int predicate) { return __all(predicate); }
 };
 };  // namespace cooperative_groups
 

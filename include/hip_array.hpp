@@ -65,6 +65,9 @@ struct hip_array {
     return h_cpy;
   }
 
+  T* begin() { return ptr_; }
+  T* end() { return begin() + size_; }
+
  private:
   void set_value(const T value) { hip_try(hipMemset(ptr_, value, sizeof(T) * size_)); }
   void allocate() { hip_try(hipMalloc((void**)&ptr_, sizeof(T) * size_)); }

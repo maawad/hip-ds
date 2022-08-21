@@ -46,8 +46,11 @@ struct atomic {
                                           T desired,
                                           std::memory_order success,
                                           std::memory_order failure) {
-    auto old = atomicCAS(data_, expected, desired);
-    return old == expected;
+    auto old = atomicCAS(reinterpret_cast<unsigned long long*>(data_),
+                         reinterpret_cast<unsigned long long&>(expected),
+                         reinterpret_cast<unsigned long long&>(desired));
+
+    return old == reinterpret_cast<unsigned long long&>(expected);
   }
 
  private:

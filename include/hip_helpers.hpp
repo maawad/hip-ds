@@ -4,6 +4,12 @@
 
 #define DEVICE_QUALIFIER __device__
 
+template <typename T>
+DEVICE_QUALIFIER unsigned int hip_ffs(unsigned long long int x) {
+  return __ffsll(x);
+}
+DEVICE_QUALIFIER unsigned int hip_ffs(unsigned int x) { return __ffs(x); }
+
 #define hip_try(call)                                                                 \
   do {                                                                                \
     hipError_t err = call;                                                            \

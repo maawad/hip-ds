@@ -18,7 +18,7 @@
 namespace bght {
 template <typename Key>
 struct universal_hash {
-  using key_type = Key;
+  using key_type    = Key;
   using result_type = Key;
 
   __host__ __device__ constexpr universal_hash() : hash_x_(1), hash_y_(2) {}
@@ -31,10 +31,10 @@ struct universal_hash {
   }
 
   universal_hash(const universal_hash&) = default;
-  universal_hash(universal_hash&&) = default;
+  universal_hash(universal_hash&&)      = default;
   universal_hash& operator=(universal_hash const&) = default;
   universal_hash& operator=(universal_hash&&) = default;
-  ~universal_hash() = default;
+  ~universal_hash()                           = default;
 
   static constexpr uint32_t prime_divisor = 4294967291u;
 
@@ -70,24 +70,24 @@ struct universal_hash {
 // non-native version will be less than optimal.
 template <typename Key>
 struct MurmurHash3_32 {
-  using key_type = Key;
+  using key_type    = Key;
   using result_type = uint32_t;
   __host__ __device__ constexpr MurmurHash3_32() : m_seed(0) {}
 
   __host__ __device__ constexpr MurmurHash3_32(uint32_t seed) : m_seed(seed) {}
 
   MurmurHash3_32(const MurmurHash3_32&) = default;
-  MurmurHash3_32(MurmurHash3_32&&) = default;
+  MurmurHash3_32(MurmurHash3_32&&)      = default;
   MurmurHash3_32& operator=(MurmurHash3_32 const&) = default;
   MurmurHash3_32& operator=(MurmurHash3_32&&) = default;
-  ~MurmurHash3_32() = default;
+  ~MurmurHash3_32()                           = default;
 
   constexpr uint32_t __host__ __device__ operator()(Key const& key) const noexcept {
-    constexpr int len = sizeof(Key);
+    constexpr int len         = sizeof(Key);
     const uint8_t* const data = (const uint8_t*)&key;
-    constexpr int nblocks = len / 4;
+    constexpr int nblocks     = len / 4;
 
-    uint32_t h1 = m_seed;
+    uint32_t h1           = m_seed;
     constexpr uint32_t c1 = 0xcc9e2d51;
     constexpr uint32_t c2 = 0x1b873593;
     //----------
@@ -105,18 +105,17 @@ struct MurmurHash3_32 {
     //----------
     // tail
     const uint8_t* tail = (const uint8_t*)(data + nblocks * 4);
-    uint32_t k1 = 0;
+    uint32_t k1         = 0;
     switch (len & 3) {
-      case 3:
-        k1 ^= tail[2] << 16;
-      case 2:
-        k1 ^= tail[1] << 8;
+      case 3: k1 ^= tail[2] << 16;
+      case 2: k1 ^= tail[1] << 8;
       case 1:
         k1 ^= tail[0];
         k1 *= c1;
         k1 = rotl32(k1, 15);
         k1 *= c2;
         h1 ^= k1;
+      case 0: break;
     };
     //----------
     // finalization
@@ -145,18 +144,14 @@ template <typename Hash, typename RNG>
 Hash initialize_hf(RNG& rng) {
   if constexpr (std::is_same_v<Hash, universal_hash<typename Hash::key_type>>) {
     uint32_t x = rng() % Hash::prime_divisor;
-    if (x < 1u) {
-      x = 1;
-    }
+    if (x < 1u) { x = 1; }
     uint32_t y = rng() % Hash::prime_divisor;
     return Hash(x, y);
   }
 
   if constexpr (std::is_same_v<Hash, MurmurHash3_32<typename Hash::key_type>>) {
     uint32_t x = rng();
-    if (x < 1u) {
-      x = 1;
-    }
+    if (x < 1u) { x = 1; }
     std::cout << "seed: " << x << std::endl;
     return Hash(x);
   }

@@ -43,7 +43,7 @@ __global__ void tiled_insert_kernel(InputIt first, InputIt last, HashMap map) {
   // Do the insertion
   auto work_queue = tile.ballot(do_op);
   while (work_queue) {
-    auto cur_rank          = __ffs(work_queue) - 1;
+    auto cur_rank          = hip_ffs(work_queue) - 1;
     auto cur_pair          = tile.shfl(insertion_pair, cur_rank);
     bool insertion_success = map.insert(cur_pair, tile);
 
@@ -79,7 +79,7 @@ __global__ void tiled_find_kernel(InputIt first, InputIt last, OutputIt output_b
   // Do the insertion
   auto work_queue = tile.ballot(do_op);
   while (work_queue) {
-    auto cur_rank = __ffs(work_queue) - 1;
+    auto cur_rank = hip_ffs(work_queue) - 1;
     auto cur_key  = tile.shfl(find_key, cur_rank);
 
     typename HashMap::mapped_type find_result = map.find(cur_key, tile);

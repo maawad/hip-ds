@@ -43,7 +43,7 @@ struct bucket {
                                          const KeyEqual key_equal) {
     bool key_exist      = key_equal(key, lane_pair_.first);
     auto key_exist_bmap = tile_.ballot(key_exist);
-    int key_lane        = __ffs(key_exist_bmap);
+    int key_lane        = hip_ffs(key_exist_bmap);
     return key_lane - 1;
   }
   DEVICE_QUALIFIER

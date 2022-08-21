@@ -2,33 +2,66 @@
 #include <iostream>
 #include <vector>
 
+#include <benchmark_helpers.hpp>
 #include <cmd.hpp>
 #include <gpu_timer.hpp>
 #include <hip_array.hpp>
 #include <iht.hpp>
 
-template <typename T>
-__global__ void memcpy_kernel(const T* input, T* output, std::size_t count) {
-  auto thread_id = hipThreadIdx_x + hipBlockIdx_x * hipBlockDim_x;
-  if (thread_id < count) { output[thread_id] = input[thread_id]; }
-}
-
 int main(int argc, char** argv) {
-  auto arguments = std::vector<std::string>(argv, argv + argc);
-  auto count     = get_arg_value<uint32_t>(arguments, "count").value_or(1ul);
+  auto arguments   = std::vector<std::string>(argv, argv + argc);
+  auto num_keys    = get_arg_value<uint32_t>(arguments, "num-keys").value_or(1ul);
+  auto load_factor = get_arg_value<float>(arguments, "load-factor").value_or(0.7);
 
   hip_device device;
   device.select_device(0);
   device.print_device_properties();
 
-  using K              = uint32_t;
-  using V              = uint32_t;
-  std::size_t capacity = 1024;
+  using key_type   = uint32_t;
+  using value_type = uint32_t;
+  using pair_type  = bght::pair<key_type, value_type>;
 
-  auto invalid_key   = std::numeric_limits<K>::max();
-  auto invalid_value = std::numeric_limits<V>::max();
+  std::size_t capacity = num_keys / load_factor;
 
-  bght::iht<K, V> test(capacity, invalid_key, invalid_value);
+  auto invalid_key   = std::numeric_limits<key_type>::max();
+  auto invalid_value = std::numeric_limits<value_type>::max();
+
+  std::cout << "Calling the ctor\n";
+  bght::iht<key_type, value_type> mmap(capacity, invalid_key, invalid_value);
+
+  std::cout << "Preparing keys\n";
+  std::vector<key_type> h_keys;
+  std::vector<key_type> h_values;
+  benchmark::generate_uniform_unique_keys(h_keys, num_keys);
+
+  std::vector<pair_type> h_pairs(num_keys);
+  auto to_pair = [](key_type x) { return pair_type{x, x * 10}; };
+  std::transform(h_keys.begin(), h_keys.end(), h_pairs.begin(), to_pair);
+
+  hip_array d_pairs   = h_pairs;
+  hip_array d_queries = h_keys;
+  hip_array d_results(num_keys, invalid_value);
+
+  std::cout << "Building the map\n\n\n\n";
+
+  bool result = mmap.insert(d_pairs.begin(), d_pairs.end());
+  if (!result) { std::cout << "Failed to build the hash map\n"; }
+  mmap.find(d_queries.begin(), d_queries.end(), d_results.begin());
+
+  auto h_queries = d_queries.to_std_vector();
+  auto h_results = d_results.to_std_vector();
+
+  for (std::size_t i = 0; i < h_results.size(); i++) {
+    auto expected = to_pair(h_queries[i]).second;
+    auto found    = h_results[i];
+    if (expected != found) {
+      std::cout << "Expected \n";
+      std::cout << expected << "\n";
+      std::cout << "Found \n";
+      std::cout << found << "\n";
+      break;
+    }
+  }
 
   return 0;
 }
