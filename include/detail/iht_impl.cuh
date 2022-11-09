@@ -43,7 +43,7 @@ iht<Key, T, Hash, KeyEqual, Scope, Allocator, B, Threshold>::iht(std::size_t cap
     , sentinel_value_{empty_value_sentinel}
     , allocator_{allocator}
     , atomic_pairs_allocator_{allocator}
-    , pool_allocator_{allocator}
+    , bool_allocator_{allocator}
     , size_type_allocator_{allocator} {
   capacity_    = detail::get_valid_capacity<bucket_size>(capacity_);
   num_buckets_ = capacity_ / bucket_size;
@@ -52,7 +52,7 @@ iht<Key, T, Hash, KeyEqual, Scope, Allocator, B, Threshold>::iht(std::size_t cap
                                                                          capacity_);
   table_   = std::shared_ptr<atomic_pair_type>(d_table_, bght::hip_deleter<atomic_pair_type>());
 
-  d_build_success_ = std::allocator_traits<pool_allocator_type>::allocate(pool_allocator_, 1);
+  d_build_success_ = std::allocator_traits<bool_allocator_type>::allocate(bool_allocator_, 1);
   build_success_   = std::shared_ptr<bool>(d_build_success_, bght::hip_deleter<bool>());
 
   hf0_ = hasher(0);
@@ -76,7 +76,7 @@ iht<Key, T, Hash, KeyEqual, Scope, Allocator, B, Threshold>::iht(const iht& othe
     , sentinel_value_(other.sentinel_value_)
     , allocator_(other.allocator_)
     , atomic_pairs_allocator_(other.atomic_pairs_allocator_)
-    , pool_allocator_(other.pool_allocator_)
+    , bool_allocator_(other.bool_allocator_)
     , d_table_(other.d_table_)
     , table_(other.table_)
     , d_build_success_(other.d_build_success_)

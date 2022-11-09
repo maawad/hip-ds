@@ -48,7 +48,7 @@ template <class Key,
           class KeyEqual             = bght::equal_to<Key>,
           detail::thread_scope Scope = detail::thread_scope::thread_scope_device,
           class Allocator            = bght::hip_allocator<char>,
-          int B                      = 16,
+          int B                      = 32,
           int Threshold              = 14>
 struct iht {
   static_assert(Threshold < B, "Threshold must be less than the bucket size");
@@ -63,7 +63,7 @@ struct iht {
 
   using atomic_pair_allocator_type =
       typename std::allocator_traits<Allocator>::template rebind_alloc<atomic_pair_type>;
-  using pool_allocator_type =
+  using bool_allocator_type =
       typename std::allocator_traits<Allocator>::template rebind_alloc<bool>;
   using size_type_allocator_type =
       typename std::allocator_traits<Allocator>::template rebind_alloc<size_type>;
@@ -227,7 +227,7 @@ struct iht {
   mapped_type sentinel_value_{};
   allocator_type allocator_;
   atomic_pair_allocator_type atomic_pairs_allocator_;
-  pool_allocator_type pool_allocator_;
+  bool_allocator_type bool_allocator_;
   size_type_allocator_type size_type_allocator_;
 
   atomic_pair_type* d_table_{};

@@ -23,30 +23,30 @@ namespace detail {
 template <typename T, auto Scope>
 struct atomic {
   static_assert(sizeof(T) <= 8);
-  atomic(T* ptr) : data_(ptr) {}
+  atomic() = default;
   atomic(const atomic&) = delete;
 
   __device__ T load(std::memory_order order = std::memory_order_seq_cst) const noexcept {
-    return *data_;
+    return data_;
   }
   __device__ void store(T desired, std::memory_order order = std::memory_order_seq_cst) noexcept {
-    *data_ = desired;
+    data_ = desired;
   }
   __device__ T exchange(T desired, std::memory_order order = std::memory_order_seq_cst) {
-    return atomicExch(data_, desired);
+    return atomicExch(&data_, desired);
   }
   __device__ bool compare_exchange_weak(T& expected,
                                         T desired,
                                         std::memory_order success,
                                         std::memory_order failure) {
-    auto old = atomicCAS(data_, expected, desired);
+    auto old = atomicCAS(&data_, expected, desired);
     return old == expected;
   }
   __device__ bool compare_exchange_strong(T& expected,
                                           T desired,
                                           std::memory_order success,
                                           std::memory_order failure) {
-    auto old = atomicCAS(reinterpret_cast<unsigned long long*>(data_),
+    auto old = atomicCAS(reinterpret_cast<unsigned long long*>(&data_),
                          reinterpret_cast<unsigned long long&>(expected),
                          reinterpret_cast<unsigned long long&>(desired));
 
@@ -54,7 +54,7 @@ struct atomic {
   }
 
  private:
-  T* data_;
+  T data_;
 };
 enum thread_scope {
   thread_scope_system,

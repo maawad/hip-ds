@@ -43,7 +43,9 @@ __global__ void tiled_insert_kernel(InputIt first, InputIt last, HashMap map) {
   // Do the insertion
   auto work_queue = tile.ballot(do_op);
   while (work_queue) {
+
     auto cur_rank          = hip_ffs(work_queue) - 1;
+
     auto cur_pair          = tile.shfl(insertion_pair, cur_rank);
     bool insertion_success = map.insert(cur_pair, tile);
 
@@ -52,6 +54,7 @@ __global__ void tiled_insert_kernel(InputIt first, InputIt last, HashMap map) {
       success = insertion_success;
     }
     work_queue = tile.ballot(do_op);
+
   }
 
   if (!tile.all(success)) { *map.d_build_success_ = false; }
@@ -126,7 +129,7 @@ __global__ void fill(InputIt first, InputIt last, T value) {
   // construct the tile
   auto thread_id = threadIdx.x + blockIdx.x * blockDim.x;
   auto count     = last - first;
-  if (thread_id > count) { return; }
+  if (thread_id >= count) { return; }
   first[thread_id].store(value);
 }
 
