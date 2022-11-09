@@ -42,11 +42,18 @@ int main(int argc, char** argv) {
   hip_array d_queries = h_keys;
   hip_array d_results(num_keys, invalid_value);
 
-  std::cout << "Building the map\n\n\n\n";
+  std::cout << "Building the map\n";
 
+  gpu_timer insertion_timer;
+  insertion_timer.start_timer();
   bool result = mmap.insert(d_pairs.begin(), d_pairs.end());
+  insertion_timer.stop_timer();
   if (!result) { std::cout << "Failed to build the hash map\n"; }
+
+  gpu_timer find_timer;
+  find_timer.start_timer();
   mmap.find(d_queries.begin(), d_queries.end(), d_results.begin());
+  find_timer.stop_timer();
 
   auto h_queries = d_queries.to_std_vector();
   auto h_results = d_results.to_std_vector();
@@ -62,6 +69,14 @@ int main(int argc, char** argv) {
       break;
     }
   }
+  std::cout << "OK\n";
+
+  std::cout << "Insertion rate (Mkey/s): " <<
+    static_cast<float>(num_keys) / 1.e6 / insertion_timer.get_elapsed_s() << "\n";
+
+
+  std::cout << "find rate (Mkey/s): " <<
+  static_cast<float>(num_keys) / 1.e6 / find_timer.get_elapsed_s() << "\n";
 
   return 0;
 }
