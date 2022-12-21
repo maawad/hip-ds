@@ -55,7 +55,10 @@ void generate_uniform_unique_keys(std::vector<key_type>& keys,
   std::mt19937 rng(seed);
   std::uniform_int_distribution<key_type> uni(min_key, max_key);
   std::unordered_set<key_type> unique_keys;
-  while (unique_keys.size() < num_keys) { unique_keys.insert(uni(rng)); }
+  while (unique_keys.size() < num_keys) {
+    unique_keys.insert(unique_keys.size());
+    // unique_keys.insert(uni(rng));
+  }
   std::copy(unique_keys.cbegin(), unique_keys.cend(), keys.begin());
 
   if (cache) {

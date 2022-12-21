@@ -83,6 +83,11 @@ struct bucket {
     return old;
   }
 
+  DEVICE_QUALIFIER
+  void print(uint32_t idx) const {
+    printf("b[%i][%i]=[%i, %i]\n", idx, tile_.thread_rank(), lane_pair_.first, lane_pair_.second);
+  }
+
  private:
   pair_type lane_pair_;
   atomic_pair_type* ptr_;

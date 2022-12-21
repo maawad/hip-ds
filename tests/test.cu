@@ -27,6 +27,7 @@ int main(int argc, char** argv) {
   auto invalid_value = std::numeric_limits<value_type>::max();
 
   std::cout << "Calling the ctor\n";
+  std::cout << "capacity: " << capacity << std::endl;
   bght::iht<key_type, value_type> mmap(capacity, invalid_key, invalid_value);
 
   std::cout << "Preparing keys\n";
@@ -71,12 +72,11 @@ int main(int argc, char** argv) {
   }
   std::cout << "OK\n";
 
-  std::cout << "Insertion rate (Mkey/s): " <<
-    static_cast<float>(num_keys) / 1.e6 / insertion_timer.get_elapsed_s() << "\n";
+  std::cout << "Insertion rate (Mkey/s): "
+            << static_cast<float>(num_keys) / 1.e6 / insertion_timer.get_elapsed_s() << "\n";
 
-
-  std::cout << "find rate (Mkey/s): " <<
-  static_cast<float>(num_keys) / 1.e6 / find_timer.get_elapsed_s() << "\n";
+  std::cout << "find rate (Mkey/s): "
+            << static_cast<float>(num_keys) / 1.e6 / find_timer.get_elapsed_s() << "\n";
 
   return 0;
 }

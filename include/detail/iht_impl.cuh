@@ -48,6 +48,7 @@ iht<Key, T, Hash, KeyEqual, Scope, Allocator, B, Threshold>::iht(std::size_t cap
   capacity_    = detail::get_valid_capacity<bucket_size>(capacity_);
   num_buckets_ = capacity_ / bucket_size;
 
+  std::cout << "Num buckets: " << num_buckets_ << std::endl;
   d_table_ = std::allocator_traits<atomic_pair_allocator_type>::allocate(atomic_pairs_allocator_,
                                                                          capacity_);
   table_   = std::shared_ptr<atomic_pair_type>(d_table_, bght::hip_deleter<atomic_pair_type>());
@@ -210,8 +211,9 @@ __device__ bool bght::iht<Key, T, Hash, KeyEqual, Scope, Allocator, B, Threshold
       auto step_size = (hf1_(pair.first) % (capacity_ / bucket_size - 1) + 1);
       while (true) {
         bucket = bucket_type(&d_table_[bucket_id * bucket_size], tile);
-        load   = bucket.compute_load(sentinel_pair);
+        bucket.load(std::memory_order_relaxed);
         INCREMENT_PROBES_IN_TILE
+        load = bucket.compute_load(sentinel_pair);
         while (load < bucket_size) {
           bool cas_success = false;
           if (lane_id == elected_lane) {
@@ -257,6 +259,7 @@ bght::iht<Key, T, Hash, KeyEqual, Scope, Allocator, B, Threshold>::find(key_type
   bucket_type cur_bucket(&d_table_[bucket_id * bucket_size], tile);
   if (threshold_ > 0) {
     cur_bucket.load(std::memory_order_relaxed);
+
     INCREMENT_PROBES_IN_TILE
     int key_location = cur_bucket.find_key_location(key, key_equal{});
     if (key_location != -1) {
