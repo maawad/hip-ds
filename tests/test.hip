@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
     auto expected = to_pair(h_queries[i]).second;
     auto found    = h_results[i];
     if (expected != found) {
-      std::cout << "key[" << i << "]: ";
+      std::cout << i << ": key[" << h_queries[i] << "]: ";
       std::cout << "Expected: ";
       std::cout << expected << ", ";
       std::cout << "Found: ";

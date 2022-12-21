@@ -23,7 +23,7 @@ namespace detail {
 namespace cooperative_groups {
 template <int width = 64>
 struct tiled_partition {
-  __device__ static auto thread_rank() { return threadIdx.x & 0x1f; }
+  __device__ static auto thread_rank() { return threadIdx.x % width; }
   __device__ static uint64_t ballot(int predicate) { return __ballot(predicate); }
   template <typename T>
   __device__ static auto shfl(T var, int src_lane) {

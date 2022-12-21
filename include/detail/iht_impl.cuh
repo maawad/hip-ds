@@ -195,13 +195,15 @@ __device__ bool bght::iht<Key, T, Hash, KeyEqual, Scope, Allocator, B, Threshold
   value_type sentinel_pair{sentinel_key_, sentinel_value_};
 
   using bucket_type = detail::bucket<atomic_pair_type, value_type, tile_type>;
-
+  bool print        = false;
+  // if (pair.first == 62) print = true;
   int load = 0;
   bucket_type bucket(&d_table_[primary_bucket * bucket_size], tile);
   if (threshold_ > 0) {
     bucket.load(std::memory_order_relaxed);
     INCREMENT_PROBES_IN_TILE
     load = bucket.compute_load(sentinel_pair);
+    if (print) bucket.print(primary_bucket);
   }
   do {
     if (load >= threshold_) {
@@ -214,6 +216,8 @@ __device__ bool bght::iht<Key, T, Hash, KeyEqual, Scope, Allocator, B, Threshold
         bucket.load(std::memory_order_relaxed);
         INCREMENT_PROBES_IN_TILE
         load = bucket.compute_load(sentinel_pair);
+        if (print) bucket.print(bucket_id);
+
         while (load < bucket_size) {
           bool cas_success = false;
           if (lane_id == elected_lane) {
@@ -221,6 +225,8 @@ __device__ bool bght::iht<Key, T, Hash, KeyEqual, Scope, Allocator, B, Threshold
                 pair, load, sentinel_pair, std::memory_order_relaxed, std::memory_order_relaxed);
           }
           cas_success = tile.shfl(cas_success, elected_lane);
+          if (print && tile.thread_rank() == 0)
+            printf("cas_success @ %i = %i\n", load, cas_success);
           if (cas_success) { return true; }
           load++;
         }
@@ -233,6 +239,9 @@ __device__ bool bght::iht<Key, T, Hash, KeyEqual, Scope, Allocator, B, Threshold
             pair, load, sentinel_pair, std::memory_order_relaxed, std::memory_order_relaxed);
       }
       cas_success = tile.shfl(cas_success, elected_lane);
+      if (print && tile.thread_rank() == 0) printf("cas_success @ %i = %i\n", load, cas_success);
+      if (print) bucket.print(primary_bucket);
+
       if (cas_success) { return true; }
       load++;
     }
@@ -257,13 +266,17 @@ bght::iht<Key, T, Hash, KeyEqual, Scope, Allocator, B, Threshold>::find(key_type
 
   // primary hash function
   bucket_type cur_bucket(&d_table_[bucket_id * bucket_size], tile);
+  bool print = false;
+  // if (key == 8) print = true;
   if (threshold_ > 0) {
     cur_bucket.load(std::memory_order_relaxed);
-
     INCREMENT_PROBES_IN_TILE
     int key_location = cur_bucket.find_key_location(key, key_equal{});
+    if (print) cur_bucket.print(bucket_id);
+    if (print) printf("key_location %i\n", key_location);
     if (key_location != -1) {
       auto found_value = cur_bucket.get_value_from_lane(key_location);
+      if (print) printf("key_location %i -> %i\n", key_location, found_value);
       return found_value;
     }
   }
@@ -278,13 +291,21 @@ bght::iht<Key, T, Hash, KeyEqual, Scope, Allocator, B, Threshold>::find(key_type
     cur_bucket.load(std::memory_order_relaxed);
     INCREMENT_PROBES_IN_TILE
     int key_location = cur_bucket.find_key_location(key, key_equal{});
+    if (print) printf("Trying doublehashing\n");
+    if (print) cur_bucket.print(bucket_id);
     if (key_location != -1) {
       auto found_value = cur_bucket.get_value_from_lane(key_location);
       return found_value;
     } else if (cur_bucket.compute_load(sentinel_pair) < bucket_size) {
+      if (print)
+        printf("sentinel_value_ %i -> %i, %i\n",
+               bucket_id,
+               cur_bucket.compute_load(sentinel_pair),
+               bucket_size);
       return sentinel_value_;
     }
     bucket_id = (bucket_id + step_size) % num_buckets_;
+    if (print) printf("bucket_id %i -> %i\n", bucket_id, initial_bucket);
     if (bucket_id == initial_bucket) break;
   } while (true);
 

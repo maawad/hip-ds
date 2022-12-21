@@ -48,7 +48,7 @@ template <class Key,
           class KeyEqual             = bght::equal_to<Key>,
           detail::thread_scope Scope = detail::thread_scope::thread_scope_device,
           class Allocator            = bght::hip_allocator<char>,
-          int B                      = 64,
+          int B                      = 32,
           int Threshold              = 14>
 struct iht {
   static_assert(Threshold < B, "Threshold must be less than the bucket size");
