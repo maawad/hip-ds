@@ -25,7 +25,8 @@ template <typename InputIt, typename HashMap>
 __global__ void tiled_insert_kernel(InputIt first, InputIt last, HashMap map) {
   // construct the tile
   auto thread_id = threadIdx.x + blockIdx.x * blockDim.x;
-  auto tile      = cooperative_groups::tiled_partition<HashMap::bucket_size>();
+  auto block     = detail::groups::this_thread_block();
+  auto tile      = detail::groups::partition<HashMap::bucket_size, decltype(block)>(block);
 
   auto count = last - first;
   if ((thread_id - tile.thread_rank()) >= count) { return; }
@@ -62,7 +63,8 @@ template <typename InputIt, typename OutputIt, typename HashMap>
 __global__ void tiled_find_kernel(InputIt first, InputIt last, OutputIt output_begin, HashMap map) {
   // construct the tile
   auto thread_id = threadIdx.x + blockIdx.x * blockDim.x;
-  auto tile      = cooperative_groups::tiled_partition<HashMap::bucket_size>();
+  auto block     = detail::groups::this_thread_block();
+  auto tile      = detail::groups::partition<HashMap::bucket_size, decltype(block)>(block);
 
   auto count = last - first;
   if ((thread_id - tile.thread_rank()) >= count) { return; }

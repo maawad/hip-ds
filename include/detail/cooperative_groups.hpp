@@ -16,30 +16,37 @@
 
 #pragma once
 
+#include <hip/hip_cooperative_groups.h>
+
 #include "hip/hip_runtime.h"
 
 namespace bght {
 namespace detail {
-namespace cooperative_groups {
-template <int width = 64>
-struct tiled_partition {
-  __device__ static auto thread_rank() { return threadIdx.x % width; }
+namespace groups {
+
+__device__ auto this_thread_block() { return cooperative_groups::this_thread_block(); }
+template <unsigned int Size, typename ParentT>
+struct partition : public cooperative_groups::impl::tiled_partition_internal<Size, ParentT> {
+  __device__ partition(const ParentT& parent)
+      : cooperative_groups::impl::tiled_partition_internal<Size, ParentT>(parent) {}
   __device__ static uint64_t ballot(int predicate) { return __ballot(predicate); }
   template <typename T>
-  __device__ static auto shfl(T var, int src_lane) {
+  __device__ auto shfl(T var, int src_lane) const {
     static_assert(sizeof(T) <= 8);
     if constexpr (sizeof(T) > 4) {
       T result;
-      result.first  = __shfl(var.first, src_lane, width);
-      result.second = __shfl(var.second, src_lane, width);
+      result.first = cooperative_groups::impl::tiled_partition_internal<Size, ParentT>::shfl(
+          var.first, src_lane);
+      result.second = cooperative_groups::impl::tiled_partition_internal<Size, ParentT>::shfl(
+          var.second, src_lane);
       return result;
     } else {
-      return __shfl(var, src_lane, width);
+      return cooperative_groups::impl::tiled_partition_internal<Size, ParentT>::shfl(var, src_lane);
     }
   }
-  __device__ static auto all(int predicate) { return __all(predicate); }
+  __device__ auto all(int predicate) const { return __all(predicate); }
 };
-};  // namespace cooperative_groups
+};  // namespace groups
 
 }  // namespace detail
 
