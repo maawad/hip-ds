@@ -32,7 +32,7 @@ docker_args=$(cat <<EOF
 -it --rm\
  -e USER=$user -e UID=$uid -e GID=$gid\
  -v $git_directoy:$git_directoy\
- -w $git_directoy/
+ -w $git_directoy
 EOF
 )
 
@@ -40,6 +40,7 @@ if [[ $target == "amd" ]]; then
     gpu_args="--device=/dev/kfd --device=/dev/dri"
     image="hip-ds-amd"
     name=$image
+    echo docker run --name $name $docker_args $gpu_args $image
     docker run --name $name $docker_args $gpu_args $image
 elif [[ $target == "nvidia" ]]; then
     gpu_args="--gpus all"

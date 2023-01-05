@@ -78,11 +78,15 @@ int main(int argc, char** argv) {
   }
   std::cout << "OK\n";
 
-  std::cout << "Insertion rate (Mkey/s): "
-            << static_cast<float>(num_keys) / 1.e6 / insertion_timer.get_elapsed_s() << "\n";
+  auto insertion_seconds = insertion_timer.get_elapsed_s();
+  auto find_seconds      = find_timer.get_elapsed_s();
 
-  std::cout << "find rate (Mkey/s): "
-            << static_cast<float>(num_keys) / 1.e6 / find_timer.get_elapsed_s() << "\n";
+  std::cout << "Insertion rate (Mkey/s): "
+            << static_cast<float>(num_keys) / 1.e6 / insertion_seconds << "\n";
+  std::cout << "Insertion time (s): " << insertion_seconds << "\n";
+
+  std::cout << "find rate (Mkey/s): " << static_cast<float>(num_keys) / 1.e6 / find_seconds << "\n";
+  std::cout << "Find time (s): " << find_seconds << "\n";
 
   return 0;
 }
