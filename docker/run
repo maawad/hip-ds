@@ -24,6 +24,7 @@ echo $target
 
 
 git_directoy=$(pwd -P)
+rocprofiler_directoy="/home/muhammad/github/rocprofiler/"
 user=`whoami`
 uid=`id -u`
 gid=`id -g`
@@ -32,6 +33,7 @@ docker_args=$(cat <<EOF
 -it --rm\
  -e USER=$user -e UID=$uid -e GID=$gid\
  -v $git_directoy:$git_directoy\
+ -v $rocprofiler_directoy:$rocprofiler_directoy\
  -w $git_directoy
 EOF
 )

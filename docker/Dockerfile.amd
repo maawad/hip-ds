@@ -37,3 +37,5 @@ RUN wget https://github.com/AMDResearch/omniperf/releases/download/v${OMNIPERF_V
 # Set enviroment varlaibles
 ENV PATH="$INSTALL_DIR/${OMNIPERF_VERSION}/bin:$PATH"
 ENV PYTHONPATH="$INSTALL_DIR/python-libs"
+
+RUN apt-get apt-get install libnuma-dev rpm
