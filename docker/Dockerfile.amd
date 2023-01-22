@@ -1,4 +1,5 @@
-FROM ubuntu:22.04
+FROM ubuntu:20.04
+# FROM ubuntu:22.04
 LABEL maintainer="Muhammad Awad <mawad@duck.com>"
 
 # Install dependencies
@@ -6,9 +7,24 @@ RUN apt-get update && apt-get -y install wget build-essential git
 
 
 # Install ROCm
-RUN wget https://repo.radeon.com/amdgpu-install/5.4/ubuntu/jammy/amdgpu-install_5.4.50400-1_all.deb
-RUN apt-get -y install ./amdgpu-install_5.4.50400-1_all.deb
+# ROCm 5.4
+# RUN wget https://repo.radeon.com/amdgpu-install/5.4/ubuntu/jammy/amdgpu-install_5.4.50400-1_all.deb
+# RUN apt-get -y install ./amdgpu-install_5.4.50400-1_all.deb
+# RUN DEBIAN_FRONTEND=noninteractive  amdgpu-install --accept-eula -y --usecase=rocm,hiplibsdk --no-dkms
+
+
+# ROCm 5.2
+# ubuntu:20.04
+RUN wget https://repo.radeon.com/amdgpu-install/22.20/ubuntu/focal/amdgpu-install_22.20.50200-1_all.deb
+RUN apt-get -y install ./amdgpu-install_22.20.50200-1_all.deb
 RUN DEBIAN_FRONTEND=noninteractive  amdgpu-install --accept-eula -y --usecase=rocm,hiplibsdk --no-dkms
+
+# ROCm 5.1
+# ubuntu:20.04
+# RUN apt-get update  && wget https://repo.radeon.com/amdgpu-install/22.10/ubuntu/focal/amdgpu-install_22.10.50100-1_all.deb
+# RUN apt-get -y install ./amdgpu-install_22.10.50100-1_all.deb
+# RUN DEBIAN_FRONTEND=noninteractive  amdgpu-install --accept-eula -y --usecase=rocm,hiplibsdk --no-dkms
+
 # Set environment variables
 ENV PATH="$PATH:/opt/rocm/bin:/opt/rocm/rocprofiler/bin:/opt/rocm/hip/bin"
 ENV LD_LIBRARY_PATH="/opt/rocm/lib:/opt/rocm/llvm/lib:/opt/rocm/hip/lib"
@@ -38,4 +54,4 @@ RUN wget https://github.com/AMDResearch/omniperf/releases/download/v${OMNIPERF_V
 ENV PATH="$INSTALL_DIR/${OMNIPERF_VERSION}/bin:$PATH"
 ENV PYTHONPATH="$INSTALL_DIR/python-libs"
 
-RUN apt-get apt-get install libnuma-dev rpm
+RUN apt-get install -y libnuma-dev rpm

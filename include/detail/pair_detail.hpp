@@ -19,38 +19,34 @@
 namespace bght {
 namespace detail {
 template <typename T>
-constexpr std::size_t next_alignment() {
+consteval std::size_t next_alignment() {
   constexpr std::size_t n = sizeof(T);
-  if (n <= 4)
-    return 4;
-  if (n <= 8)
-    return 8;
+  if (n <= 4) return 4;
+  if (n <= 8) return 8;
   return 16;
 }
-constexpr std::size_t next_alignment(std::size_t n) {
-  if (n <= 4)
-    return 4;
-  if (n <= 8)
-    return 8;
+consteval std::size_t next_alignment(std::size_t n) {
+  if (n <= 4) return 4;
+  if (n <= 8) return 8;
   return 16;
 }
 
 template <typename T1, typename T2>
-constexpr std::size_t pair_size() {
+consteval std::size_t pair_size() {
   return sizeof(T1) + sizeof(T2);
 }
 
 template <typename T1, typename T2>
-constexpr std::size_t pair_alignment() {
+consteval std::size_t pair_alignment() {
   return next_alignment(pair_size<T1, T2>());
 }
 
 template <typename T1, typename T2>
-constexpr std::size_t padding_size() {
-  constexpr auto psz = pair_size<T1, T2>();
-  constexpr auto apsz = next_alignment(pair_size<T1, T2>());
+consteval std::size_t padding_size() {
+  auto psz  = pair_size<T1, T2>();
+  auto apsz = next_alignment(pair_size<T1, T2>());
   if (psz > apsz) {
-    constexpr auto nsz = (1ull + (psz / apsz)) * apsz;
+    auto nsz = (1ull + (psz / apsz)) * apsz;
     return nsz - psz;
   }
   return apsz - psz;

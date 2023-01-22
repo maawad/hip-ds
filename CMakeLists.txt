@@ -10,18 +10,25 @@ project(hip_ds LANGUAGES CXX HIP)
 find_package(hip REQUIRED)
 
 # C++ and HIP standard
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_HIP_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_HIP_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_HIP_STANDARD_REQUIRED TRUE)
 
-
 set(CMAKE_HIP_FLAGS_DEBUG "-g -G")
+set(CMAKE_HIP_FLAGS_RELEASE "-O3")
+
+
+# Release mode is the default
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
+    set(CMAKE_BUILD_TYPE Release)
+endif ()
+
 
 set(CXX_FLAGS
         $<IF:$<CXX_COMPILER_ID:MSVC>,
-        /std:c++17,
-        --std=c++17
+        /std:c++20,
+        --std=c++20
         >)
 
 set(HIP_FLAGS
