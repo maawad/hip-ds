@@ -18,6 +18,15 @@ set(CMAKE_HIP_STANDARD_REQUIRED TRUE)
 
 set(CMAKE_HIP_FLAGS_DEBUG "-g -G")
 
+set(CXX_FLAGS
+        $<IF:$<CXX_COMPILER_ID:MSVC>,
+        /std:c++17,
+        --std=c++17
+        >)
+
+set(HIP_FLAGS
+      -Rpass-analysis=kernel-resource-usage
+   )
 
 
 # Direct all output to /bin directory
@@ -33,6 +42,9 @@ option(build_tests "Build tests" ON)
 set(external_includes "${CMAKE_CURRENT_SOURCE_DIR}/external")
 set(hip_ds_includes "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
+target_compile_options(hip_ds INTERFACE
+                        $<$<COMPILE_LANGUAGE:CXX>:${CXX_FLAGS}>
+                        $<$<COMPILE_LANGUAGE:HIP>:${HIP_FLAGS}>)
 
 target_include_directories(hip_ds
                             INTERFACE ${external_includes})
